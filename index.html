@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>にこうざ！</title>
+    <style>
+        @font-face {
+            font-family: 'keifont';
+            src: url('https://raw.githubusercontent.com/half-moon/font-hosting/main/keifont.ttf');
+        }
+
+        :root {
+            --pink-bg: #ffdae9;
+            --button-pink: #ff85b2;
+            --text-brown: #5c2d2d;
+            --main-font: 'keifont', sans-serif;
+        }
+
+        * {
+            font-family: var(--main-font);
+            font-weight: 900;
+            color: var(--text-brown);
+            -webkit-text-stroke: 1.2px white;
+            letter-spacing: 1px;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--pink-bg);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            overflow: hidden;
+            text-align: center;
+            padding-top: 5vh;
+        }
+
+        .page {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            transition: opacity 0.4s;
+        }
+
+        .hidden { display: none !important; }
+
+        /* タイトルを一行に固定 */
+        .nikouza-text {
+            font-size: 4.5rem;
+            color: #ff4d94;
+            -webkit-text-stroke: 2px white;
+            text-shadow: 4px 4px 0px var(--text-brown);
+            margin: 0;
+            white-space: nowrap; /* 絶対に改行させない */
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.1); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .bounce { animation: bounceIn 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+
+        .main-img { 
+            width: 210px; 
+            border-radius: 20px; 
+            margin: 15px 0; 
+            cursor: pointer; 
+            border: 6px solid white; 
+            box-shadow: 0 5px 15px rgba(92, 45, 45, 0.2); 
+        }
+
+        .pink-button {
+            background-color: var(--button-pink);
+            color: white !important;
+            -webkit-text-stroke: 1.2px var(--text-brown);
+            border: 4px solid white;
+            padding: 12px 30px;
+            font-size: 1.5rem;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 6px var(--text-brown);
+            margin: 8px;
+        }
+        .pink-button:active { transform: translateY(4px); box-shadow: 0 2px var(--text-brown); }
+
+        .back-btn {
+            background-color: #fdf2f6;
+            color: var(--text-brown) !important;
+            font-size: 1rem;
+            padding: 8px 20px;
+            -webkit-text-stroke: 0.5px white;
+        }
+
+        input { 
+            padding: 12px; 
+            font-size: 1.3rem; 
+            border-radius: 10px; 
+            border: 4px solid var(--button-pink); 
+            width: 270px; 
+            text-align: center; 
+            margin: 10px 0;
+            background: white;
+            -webkit-text-stroke: 0px;
+        }
+
+        .warning-text { color: #ff0000; -webkit-text-stroke: 0.5px white; font-size: 1.1rem; }
+        .success-msg { font-size: 3.5rem; color: #ff4d94; -webkit-text-stroke: 2px white; text-shadow: 3px 3px 0px var(--text-brown); margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <audio id="snd-bounce" src="https://taira-komori.jpn.org/sound/famicom01/jump01.mp3"></audio>
+    <audio id="snd-puni" src="https://taira-komori.jpn.org/sound/famicom01/powerup01.mp3"></audio>
+    <audio id="snd-send" src="https://taira-komori.jpn.org/sound/famicom01/save01.mp3"></audio>
+
+    <div id="page1" class="page">
+        <h1 class="nikouza-text bounce">にこうざ！</h1>
+        <img src="https://cdn.discordapp.com/attachments/1441007439536324691/1454062164175228939/81_20251226194331.png?ex=694fb86b&is=694e66eb&hm=708604011f348029d12f536129527535aa59ec39fbd2acddb88a10206546a26e&" 
+             id="main-icon" class="main-img bounce" style="animation-delay: 0.2s;">
+        <button class="pink-button bounce" style="animation-delay: 0.4s;" onclick="playSnd('snd-puni'); showChoice();">口座を開設する</button>
+    </div>
+
+    <div id="choice-page" class="page hidden">
+        <h2 style="font-size: 2rem; margin: 20px 0;">どちらにしますか？</h2>
+        <button class="pink-button" onclick="playSnd('snd-puni'); goToForm('deposit')">お金を入れる</button>
+        <button class="pink-button" onclick="playSnd('snd-puni'); goToForm('withdraw')">引き出す</button>
+        <button class="pink-button back-btn" onclick="goBack('page1')">戻る</button>
+    </div>
+
+    <div id="form-page" class="page hidden">
+        <h2 id="form-title" style="font-size: 2.5rem; margin: 10px 0; color: #ff4d94;"></h2>
+        <div id="withdraw-msg" class="warning-text hidden">⚠️にこがオンラインになったら送ります⚠️</div>
+        <input type="text" id="userName" placeholder="PayPayのお名前">
+        <input type="number" id="amount" placeholder="金額を入力">
+        <button class="pink-button" onclick="playSnd('snd-send'); submitData()">送信</button>
+        <button class="pink-button back-btn" onclick="goBack('choice-page')">戻る</button>
+    </div>
+
+    <div id="page3" class="page hidden">
+        <div id="result-content"></div>
+        <button class="pink-button" onclick="location.reload()" style="margin-top: 20px;">完了！</button>
+    </div>
+
+    <div id="dev-mode" class="page hidden">
+        <h2>🛠 開発者もーど</h2>
+        <div style="margin-bottom: 10px;">
+            <button id="tab-deposit" class="pink-button" style="font-size:1rem; padding: 10px;" onclick="switchTab('deposit')">送金</button>
+            <button id="tab-withdraw" class="pink-button" style="font-size:1rem; padding: 10px;" onclick="switchTab('withdraw')">引き出し</button>
+        </div>
+        <div id="log-display" style="background:white; width:90%; height:300px; overflow-y:auto; border:3px solid var(--text-brown); border-radius:15px; -webkit-text-stroke: 0px; color: #000;"></div>
+        <button class="pink-button back-btn" onclick="location.reload()">とじる</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCAgV5YTyakUBurFEfBbPsUxZaoyvaH3DU",
+            authDomain: "nikouza.firebaseapp.com",
+            databaseURL: "https://nikouza-default-rtdb.firebaseio.com",
+            projectId: "nikouza",
+            storageBucket: "nikouza.firebasestorage.app",
+            messagingSenderId: "809175264102",
+            appId: "1:809175264102:web:31ded737a6140d8beaf6a7"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function playSnd(id) {
+            const s = document.getElementById(id);
+            if(s) { s.currentTime = 0; s.play().catch(()=>{}); }
+        }
+
+        function showChoice() {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('choice-page').classList.remove('hidden');
+        }
+
+        function goToForm(mode) {
+            currentMode = mode;
+            document.getElementById('choice-page').classList.add('hidden');
+            document.getElementById('form-page').classList.remove('hidden');
+            document.getElementById('form-title').innerText = (mode === 'deposit') ? "お金を入れる" : "引き出す";
+            const msg = document.getElementById('withdraw-msg');
+            if(mode === 'withdraw') msg.classList.remove('hidden'); else msg.classList.add('hidden');
+        }
+
+        function goBack(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function submitData() {
+            const name = document.getElementById('userName').value;
+            const amt = document.getElementById('amount').value;
+            if(!name || !amt) return;
+
+            database.ref(currentMode).push({
+                name: name, amount: amt, timestamp: new Date().toLocaleString('ja-JP')
+            });
+
+            const res = document.getElementById('result-content');
+            if (currentMode === 'deposit') {
+                res.innerHTML = `<h2 style="font-size:2rem; color:#ff4d94;">完了！</h2><img src="https://cdn.discordapp.com/attachments/1452613193384988746/1454072685889060975/IMG_3292.png?ex=694fc237&is=694e70b7&hm=22298a8e7a34fc6bbb4c0f1975af294ca8ef8d542b741120541b7901b330b1b8&" class="main-img">`;
+            } else {
+                res.innerHTML = `<div class="success-msg">引き出されます！</div>`;
+            }
+
+            document.getElementById('form-page').classList.add('hidden');
+            document.getElementById('page3').classList.remove('hidden');
+        }
+
+        let clicks = 0;
+        document.getElementById('main-icon').onclick = () => {
+            playSnd('snd-bounce');
+            clicks++;
+            if(clicks >= 10) {
+                const pw = prompt("パスワード？");
+                if(pw === "25254545") {
+                    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+                    document.getElementById('dev-mode').classList.remove('hidden');
+                    switchTab('deposit');
+                }
+                clicks = 0;
+            }
+        };
+
+        function switchTab(tab) {
+            database.ref(tab).on('value', (snap) => {
+                const lb = document.getElementById('log-display');
+                lb.innerHTML = "";
+                const data = snap.val();
+                if(!data) { lb.innerHTML = "なし"; return; }
+                Object.values(data).reverse().forEach(v => {
+                    const d = document.createElement('div');
+                    d.style.borderBottom = "1px solid #ffdae9";
+                    d.style.padding = "10px";
+                    d.innerText = `${v.timestamp} | ${v.name} | ${v.amount}円`;
+                    lb.appendChild(d);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
