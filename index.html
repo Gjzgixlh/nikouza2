@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>にこうざ！</title>
     <style>
+        /* サーバーからフォントを安定して読み込む */
         @font-face {
             font-family: 'keifont';
-            src: url('https://raw.githubusercontent.com/half-moon/font-hosting/main/keifont.ttf');
+            src: url('https://raw.githubusercontent.com/half-moon/font-hosting/main/keifont.ttf') format('truetype');
+            font-display: swap;
         }
 
         :root {
@@ -22,7 +24,7 @@
             font-weight: 900;
             color: var(--text-brown);
             -webkit-text-stroke: 1.2px white;
-            letter-spacing: 1px;
+            box-sizing: border-box;
         }
 
         body {
@@ -32,7 +34,6 @@
             justify-content: center;
             align-items: flex-start;
             height: 100vh;
-            overflow: hidden;
             text-align: center;
             padding-top: 5vh;
         }
@@ -40,23 +41,22 @@
         .page {
             position: absolute;
             width: 100%;
+            max-width: 500px;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
             align-items: center;
             transition: opacity 0.4s;
         }
 
         .hidden { display: none !important; }
 
-        /* タイトルを一行に固定 */
         .nikouza-text {
             font-size: 4.5rem;
             color: #ff4d94;
             -webkit-text-stroke: 2px white;
             text-shadow: 4px 4px 0px var(--text-brown);
             margin: 0;
-            white-space: nowrap; /* 絶対に改行させない */
+            white-space: nowrap;
         }
 
         @keyframes bounceIn {
@@ -102,22 +102,22 @@
             font-size: 1.3rem; 
             border-radius: 10px; 
             border: 4px solid var(--button-pink); 
-            width: 270px; 
+            width: 80%; 
             text-align: center; 
             margin: 10px 0;
             background: white;
             -webkit-text-stroke: 0px;
         }
 
-        .warning-text { color: #ff0000; -webkit-text-stroke: 0.5px white; font-size: 1.1rem; }
+        .warning-text { color: #ff0000; -webkit-text-stroke: 0.5px white; font-size: 1.1rem; margin: 10px; }
         .success-msg { font-size: 3.5rem; color: #ff4d94; -webkit-text-stroke: 2px white; text-shadow: 3px 3px 0px var(--text-brown); margin-top: 50px; }
     </style>
 </head>
 <body>
 
-    <audio id="snd-bounce" src="https://taira-komori.jpn.org/sound/famicom01/jump01.mp3"></audio>
-    <audio id="snd-puni" src="https://taira-komori.jpn.org/sound/famicom01/powerup01.mp3"></audio>
-    <audio id="snd-send" src="https://taira-komori.jpn.org/sound/famicom01/save01.mp3"></audio>
+    <audio id="snd-bounce" src="https://taira-komori.jpn.org/sound/famicom01/jump01.mp3" preload="auto"></audio>
+    <audio id="snd-puni" src="https://taira-komori.jpn.org/sound/famicom01/powerup01.mp3" preload="auto"></audio>
+    <audio id="snd-send" src="https://taira-komori.jpn.org/sound/famicom01/save01.mp3" preload="auto"></audio>
 
     <div id="page1" class="page">
         <h1 class="nikouza-text bounce">にこうざ！</h1>
@@ -161,6 +161,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 
     <script>
+        // あなたのFirebaseサーバー設定
         const firebaseConfig = {
             apiKey: "AIzaSyCAgV5YTyakUBurFEfBbPsUxZaoyvaH3DU",
             authDomain: "nikouza.firebaseapp.com",
@@ -172,6 +173,8 @@
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+
+        let currentMode = 'deposit';
 
         function playSnd(id) {
             const s = document.getElementById(id);
@@ -202,8 +205,11 @@
             const amt = document.getElementById('amount').value;
             if(!name || !amt) return;
 
+            // サーバー(Firebase)へ保存
             database.ref(currentMode).push({
-                name: name, amount: amt, timestamp: new Date().toLocaleString('ja-JP')
+                name: name, 
+                amount: amt, 
+                timestamp: new Date().toLocaleString('ja-JP')
             });
 
             const res = document.getElementById('result-content');
@@ -233,6 +239,7 @@
         };
 
         function switchTab(tab) {
+            database.ref(tab).off(); // 二重登録防止
             database.ref(tab).on('value', (snap) => {
                 const lb = document.getElementById('log-display');
                 lb.innerHTML = "";
